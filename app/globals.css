@@ -1,0 +1,136 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --moonstone: #0fa3b1;
+  --uranian-blue: #b5e2fa;
+  --baby-powder: #f9f7f3;
+  --vanilla: #eddea4;
+  --atomic-tangerine: #f7a072;
+
+  /* Updated light mode colors to match user specifications */
+  --background: #f9f7f3; /* baby-powder background */
+  --foreground: #2a2a2a;
+  --card: #ffffff;
+  --card-foreground: #2a2a2a;
+  --popover: #ffffff;
+  --popover-foreground: #2a2a2a;
+  --primary: #0fa3b1; /* moonstone for buttons & icons */
+  --primary-foreground: #ffffff;
+  --secondary: #b5e2fa; /* uranian-blue for drop shadows */
+  --secondary-foreground: #2a2a2a;
+  --muted: #eddea4; /* vanilla */
+  --muted-foreground: #666666;
+  --accent: #f7a072; /* atomic-tangerine */
+  --accent-foreground: #2a2a2a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e5e5e5;
+  --input: #ffffff;
+  --ring: #0fa3b1; /* moonstone */
+  --chart-1: #0fa3b1;
+  --chart-2: #b5e2fa;
+  --chart-3: #eddea4;
+  --chart-4: #f7a072;
+  --chart-5: #2a2a2a;
+  --radius: 0.625rem;
+  --sidebar: #f9f7f3;
+  --sidebar-foreground: #2a2a2a;
+  --sidebar-primary: #0fa3b1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eddea4;
+  --sidebar-accent-foreground: #2a2a2a;
+  --sidebar-border: #e5e5e5;
+  --sidebar-ring: #0fa3b1;
+}
+
+.dark {
+  --background: #0a0a0f; /* deep space background */
+  --foreground: #ffffff;
+  --card: #1a1a2e; /* dark purple card background */
+  --card-foreground: #ffffff;
+  --popover: #1a1a2e;
+  --popover-foreground: #ffffff;
+  --primary: #ff0080; /* hot pink primary */
+  --primary-foreground: #ffffff;
+  --secondary: #00ffff; /* cyan secondary */
+  --secondary-foreground: #0a0a0f;
+  --muted: #16213e; /* muted dark blue */
+  --muted-foreground: #a0a0a0;
+  --accent: #8000ff; /* purple accent */
+  --accent-foreground: #ffffff;
+  --destructive: #ff4444;
+  --destructive-foreground: #ffffff;
+  --border: #333366; /* purple border */
+  --input: #1a1a2e;
+  --ring: #ff0080; /* hot pink ring */
+  --chart-1: #ff0080;
+  --chart-2: #00ffff;
+  --chart-3: #8000ff;
+  --chart-4: #ffff00;
+  --chart-5: #ff4444;
+  --sidebar: #0a0a0f;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #ff0080;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1a1a2e;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #333366;
+  --sidebar-ring: #ff0080;
+}
+
+@theme inline {
+  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Added custom drop shadow using uranian-blue color */
+  .shadow-custom {
+    box-shadow: 0 4px 6px -1px rgb(181 226 250 / 0.3), 0 2px 4px -2px rgb(181 226 250 / 0.3);
+  }
+}
