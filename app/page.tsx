@@ -64,7 +64,7 @@ export default function StandupRandomizer() {
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-balance bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Stand-up Name Randomizer
+            Stand-up Randomiser
           </h1>
           <p className="text-muted-foreground text-pretty">
             Add team members, shuffle, and reveal them one by one for your daily standup
