@@ -1,40 +1,97 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect, useRef, KeyboardEvent, ChangeEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Shuffle, Plus, RotateCcw, Users } from "lucide-react"
+import { Shuffle, Plus, RotateCcw, Users, Copy, Trash, CheckCircle, XCircle } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 
+import { TeamMember, getTeamMembers, saveTeamMembers, parseTeamMembersList, teamMembersToString } from "@/lib/local-storage"
+
 export default function StandupRandomizer() {
-  const [names, setNames] = useState<string[]>([])
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [currentName, setCurrentName] = useState("")
   const [shuffledNames, setShuffledNames] = useState<string[]>([])
   const [revealedIndex, setRevealedIndex] = useState(-1)
   const [isShuffled, setIsShuffled] = useState(false)
+  const [copySuccess, setCopySuccess] = useState(false)
+  
+  // Load team members from localStorage on initial render
+  useEffect(() => {
+    setTeamMembers(getTeamMembers())
+  }, [])
+
+  // Save team members to localStorage whenever they change
+  useEffect(() => {
+    saveTeamMembers(teamMembers)
+  }, [teamMembers])
 
   const addName = () => {
-    if (currentName.trim() && !names.includes(currentName.trim())) {
-      setNames([...names, currentName.trim()])
-      setCurrentName("")
+    const input = currentName.trim()
+    
+    if (!input) return
+    
+    // Check if it's a comma-separated list
+    if (input.includes(',')) {
+      const newNames = parseTeamMembersList(input)
+      
+      // Preserve existing members' enabled status if they're in the new list
+      const mergedMembers = [...teamMembers]
+      
+      newNames.forEach((newMember: TeamMember) => {
+        if (!mergedMembers.some((m: TeamMember) => m.name === newMember.name)) {
+          mergedMembers.push(newMember)
+        }
+      })
+      
+      setTeamMembers(mergedMembers)
+    } else {
+      // Single name
+      if (!teamMembers.some((member: TeamMember) => member.name === input)) {
+        const newMembers = [...teamMembers, { name: input, enabled: true }]
+        setTeamMembers(newMembers)
+      }
     }
+    
+    setCurrentName("")
   }
 
   const removeName = (nameToRemove: string) => {
-    setNames(names.filter((name) => name !== nameToRemove))
+    setTeamMembers(teamMembers.filter((member: TeamMember) => member.name !== nameToRemove))
+    setIsShuffled(false)
+    setRevealedIndex(-1)
+  }
+  
+  const toggleMemberStatus = (nameToToggle: string) => {
+    setTeamMembers(teamMembers.map((member: TeamMember) => 
+      member.name === nameToToggle 
+        ? { ...member, enabled: !member.enabled } 
+        : member
+    ))
     setIsShuffled(false)
     setRevealedIndex(-1)
   }
 
   const shuffleNames = () => {
-    const shuffled = [...names].sort(() => Math.random() - 0.5)
+    // Only include enabled members in the shuffle
+    const enabledMembers = teamMembers
+      .filter((member: TeamMember) => member.enabled)
+      .map((member: TeamMember) => member.name)
+    
+    const shuffled = [...enabledMembers].sort(() => Math.random() - 0.5)
     setShuffledNames(shuffled)
     setRevealedIndex(-1)
     setIsShuffled(true)
+  }
+  
+  
+  const copyTeamList = () => {
+    const text = teamMembersToString(teamMembers)
+    navigator.clipboard.writeText(text)
+    setCopySuccess(true)
+    setTimeout(() => setCopySuccess(false), 2000)
   }
 
   const revealNext = () => {
@@ -49,7 +106,7 @@ export default function StandupRandomizer() {
     setShuffledNames([])
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       addName()
     }
@@ -83,9 +140,9 @@ export default function StandupRandomizer() {
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Enter team member name..."
+                placeholder="Enter name or paste comma-separated list: John, Mary, Scott..."
                 value={currentName}
-                onChange={(e) => setCurrentName(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setCurrentName(e.target.value)}
                 onKeyPress={handleKeyPress}
                 className="flex-1"
               />
@@ -94,21 +151,59 @@ export default function StandupRandomizer() {
               </Button>
             </div>
 
-            {names.length > 0 && (
+            {teamMembers.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  {names.length} team member{names.length !== 1 ? "s" : ""} added
-                </p>
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-muted-foreground">
+                    {teamMembers.length} team member{teamMembers.length !== 1 ? "s" : ""} added
+                    {teamMembers.length > 0 && 
+                      ` (${teamMembers.filter((m: TeamMember) => m.enabled).length} active)`
+                    }
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={copyTeamList}
+                    className="text-xs"
+                  >
+                    {copySuccess ? (
+                      <>
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3 mr-1" />
+                        Copy List
+                      </>
+                    )}
+                  </Button>
+                </div>
                 <div className="flex flex-wrap gap-2">
-                  {names.map((name) => (
-                    <Badge
-                      key={name}
-                      variant="secondary"
-                      className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                      onClick={() => removeName(name)}
-                    >
-                      {name} ×
-                    </Badge>
+                  {teamMembers.map((member: TeamMember) => (
+                    <div key={member.name} className="flex gap-1 items-center">
+                      <Badge
+                        key={member.name}
+                        variant={member.enabled ? "secondary" : "outline"}
+                        className={`cursor-pointer transition-colors ${member.enabled ? "" : "opacity-60"}`}
+                        onClick={() => toggleMemberStatus(member.name)}
+                      >
+                        {member.name}
+                        {member.enabled ? (
+                          <CheckCircle className="h-3 w-3 ml-1" />
+                        ) : (
+                          <XCircle className="h-3 w-3 ml-1" />
+                        )}
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeName(member.name)}
+                      >
+                        <Trash className="h-3 w-3" />
+                      </Button>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -117,11 +212,11 @@ export default function StandupRandomizer() {
         </Card>
 
         {/* Controls */}
-        {names.length > 0 && (
+        {teamMembers.length > 0 && (
           <div className="flex gap-2 justify-center">
             <Button
               onClick={shuffleNames}
-              disabled={names.length < 2}
+              disabled={teamMembers.filter((m: TeamMember) => m.enabled).length < 1}
               className="flex items-center gap-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
             >
               <Shuffle className="h-4 w-4" />
@@ -149,7 +244,7 @@ export default function StandupRandomizer() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                {shuffledNames.map((name, index) => (
+                {shuffledNames.map((name: string, index: number) => (
                   <div
                     key={`${name}-${index}`}
                     className={`p-3 rounded-lg border transition-all duration-300 ${
@@ -185,7 +280,7 @@ export default function StandupRandomizer() {
           </Card>
         )}
 
-        {names.length === 0 && (
+        {teamMembers.length === 0 && (
           <Card className="border-dashed">
             <CardContent className="pt-6">
               <div className="text-center text-muted-foreground">
